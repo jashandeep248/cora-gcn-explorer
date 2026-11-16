@@ -185,7 +185,13 @@ def render_predictions(data: dict):
         class_id = pred["predicted_class_id"]
         color = CLASS_COLORS[class_id]
         name = pred["predicted_class_name"].replace("_", " ")
-        conf = pred["probabilities"][class_id] * 100
+        probabilities = pred.get("probabilities")
+        if probabilities is None:
+            probabilities = pred.get("probabilites")
+        if probabilities is None:
+            st.error("Prediction response is missing its probability values.")
+            return
+        conf = probabilities[class_id] * 100
 
         with st.container():
             st.markdown(
@@ -205,7 +211,7 @@ def render_predictions(data: dict):
             df = pd.DataFrame(
                 {
                     "topic": [c.replace("_", " ") for c in CORA_CLASSES.values()],
-                    "probability": pred["probabilities"],
+                    "probability": probabilities,
                     "class_id": list(CORA_CLASSES.keys()),
                 }
             ).sort_values("probability", ascending=True)
